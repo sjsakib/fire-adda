@@ -1,0 +1,35 @@
+body {
+  margin: auto;
+  padding: 0;
+  font-family: cursive;
+}
+
+#root {
+  min-height: 100vh;
+  margin: 0 10vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  flex-grow: 1;
+}
+
+.message {
+  margin: 2vh 0;
+}
+
+.message-info {
+  font-size: 8pt;
+  font-style: italic;
+}
+
+.send-form {
+  display: flex;
+  flex-grow: 1;
+}
+
+.message-field {
+  flex-grow: 1;
+}
