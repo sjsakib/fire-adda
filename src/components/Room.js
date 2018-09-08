@@ -13,19 +13,18 @@ class Room extends React.Component {
     this.db = firebase.database();
   }
 
-  componentDidMount() {
-    // listen for any child_added event on the /messages path
-    this.db
-      .ref('/messages')
-      .limitToLast(10)
-      .on('child_added', child => {
-        // get the value and update state
-        console.log('added...........');
-        const message = { id: child.key, ...child.val() };
-        const messages = this.state.messages;
-        this.setState({ messages: [...messages, message] });
-      });
-  }
+componentDidMount() {
+  // listen for any child_added event on the /messages path
+  this.db
+    .ref('/messages')
+    .limitToLast(10)
+    .on('child_added', child => {
+      // get the value and update state
+      const message = { id: child.key, ...child.val() };
+      const messages = this.state.messages;
+      this.setState({ messages: [...messages, message] });
+    });
+}
 
   sendMessage(e) {
     e.preventDefault();
