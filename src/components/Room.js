@@ -5,7 +5,7 @@ class Room extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: { name: 'Me' },
+      currentUser: props.currentUser,
       messages: []
     };
 
@@ -15,12 +15,16 @@ class Room extends React.Component {
 
   componentDidMount() {
     // listen for any child_added event on the /messages path
-    this.db.ref('/messages').on('child_added', child => {
-      // get the value and update state
-      const message = {id: child.key, ...child.val()};
-      const messages = this.state.messages;
-      this.setState({messages: [...messages, message]});
-    })
+    this.db
+      .ref('/messages')
+      .limitToLast(10)
+      .on('child_added', child => {
+        // get the value and update state
+        console.log('added...........');
+        const message = { id: child.key, ...child.val() };
+        const messages = this.state.messages;
+        this.setState({ messages: [...messages, message] });
+      });
   }
 
   sendMessage(e) {
@@ -48,8 +52,9 @@ class Room extends React.Component {
         <div className="messages">
           {this.state.messages.map(m => (
             <div key={m.id} className="message">
+              <img className="avatar" src={m.user.photo} />
               <div className="message-info">
-                {m.user.name},
+                {m.user.name},{' '}
                 {/* we are not storing date object in state anymore.
                  So, have to create a date object */}
                 {new Date(m.time).toLocaleDateString('en-US', {
@@ -65,7 +70,12 @@ class Room extends React.Component {
           ))}
         </div>
         <form className="send-form" onSubmit={e => this.sendMessage(e)}>
-          <input className="message-field" name="message" type="text" />
+          <input
+            placeholder="Type and press enter to send..."
+            className="message-field"
+            name="message"
+            type="text"
+          />
         </form>
       </div>
     );
