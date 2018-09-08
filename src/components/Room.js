@@ -1,32 +1,49 @@
 import React from 'react';
+import firebase from '../firebase';
 
 class Room extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: { name: "Me" },
+      currentUser: props.currentUser,
       messages: []
     };
+
+    // create firebase database instance
+    this.db = firebase.database();
+  }
+
+  componentDidMount() {
+    // listen for any child_added event on the /messages path
+    this.db
+      .ref('/messages')
+      .limitToLast(10)
+      .on('child_added', child => {
+        // get the value and update state
+        console.log('added...........');
+        const message = { id: child.key, ...child.val() };
+        const messages = this.state.messages;
+        this.setState({ messages: [...messages, message] });
+      });
   }
 
   sendMessage(e) {
     e.preventDefault();
 
-    // construct the new message
-    const message = {
-      id: Math.random()
-        .toString(36)
-        .slice(2, 13), // a quick a way to generate random string
-      user: this.state.currentUser,
-      time: new Date(),
-      text: e.target.message.value.trim()
-    };
+    // Get a reference to the '/message' path of the database
+    // and create a new object with push() which also generates
+    // an unique key
+    const newMessage = this.db.ref('/messages').push();
 
-    // update messages without mutating
-    this.setState({ messages: [...this.state.messages, message] });
+    const user = this.state.currentUser;
+    const text = e.target.message.value.trim();
+    const time = new Date().getTime();
+
+    // set the new object value
+    newMessage.set({ user, text, time });
 
     // clear the input field
-    e.target.message.value = "";
+    e.target.message.value = '';
   }
 
   render() {
@@ -35,14 +52,17 @@ class Room extends React.Component {
         <div className="messages">
           {this.state.messages.map(m => (
             <div key={m.id} className="message">
+              <img className="avatar" src={m.user.photo} />
               <div className="message-info">
-                {m.user.name},
-                {m.time.toLocaleDateString("en-US", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric"
+                {m.user.name},{' '}
+                {/* we are not storing date object in state anymore.
+                 So, have to create a date object */}
+                {new Date(m.time).toLocaleDateString('en-US', {
+                  hour: 'numeric',
+                  minute: 'numeric',
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
                 })}
               </div>
               <div className="message-text">{m.text}</div>
@@ -50,7 +70,12 @@ class Room extends React.Component {
           ))}
         </div>
         <form className="send-form" onSubmit={e => this.sendMessage(e)}>
-          <input className="message-field" name="message" type="text" />
+          <input
+            placeholder="Type and press enter to send..."
+            className="message-field"
+            name="message"
+            type="text"
+          />
         </form>
       </div>
     );
